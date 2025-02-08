@@ -6,12 +6,15 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 export default function Explore() {
   return (
+    <ProtectedRoute>
     <View style={styles.container}>
       <Text style={styles.title}>Explore</Text>
     </View>
+    </ProtectedRoute>
   );
 }
 

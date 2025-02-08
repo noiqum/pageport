@@ -1,33 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { StyleSheet, View, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Text } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { router } from 'expo-router';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../features/authSlice';
-import { RootState } from '../store';
 import { auth } from '@/firebaseConfig';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  const [isLoading, setIsLoading] = useState(false);
+  
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-
-  // 🔥 Use useEffect to prevent unnecessary re-renders
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated]); // ✅ Runs only when isAuthenticated changes
-
+  
   const handleLogin = async () => {
+    if (isLoading) return;
+    
     try {
+      setIsLoading(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      dispatch(loginSuccess(userCredential.user));
+      
+      // Dispatch action with only necessary user data
+      const userData = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        // Add other necessary user fields
+      };
+      
+      dispatch(loginSuccess(userData));
+      
+      // Use setTimeout to ensure state updates are completed
+      setTimeout(() => {
+        router.replace("/(tabs)");
+      }, 0);
+      
     } catch (error: any) {
       Alert.alert('Error', error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -43,6 +54,7 @@ export default function Login() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
+        editable={!isLoading}
       />
       
       <TextInput
@@ -52,19 +64,28 @@ export default function Login() {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        editable={!isLoading}
       />
       
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      <TouchableOpacity 
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={handleLogin}
+        disabled={isLoading}
+      >
+        <Text style={styles.buttonText}>
+          {isLoading ? 'Logging in...' : 'Login'}
+        </Text>
       </TouchableOpacity>
       
-      <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+      <TouchableOpacity 
+        onPress={() => router.push('/(auth)/register')}
+        disabled={isLoading}
+      >
         <Text style={styles.linkText}>Don't have an account? Register</Text>
       </TouchableOpacity>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -95,6 +116,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
   },
+  buttonDisabled: {
+    backgroundColor: '#004a99',
+    opacity: 0.7,
+  },
   buttonText: {
     color: '#ffffff',
     fontSize: 16,
@@ -105,4 +130,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
-}); 
+});
