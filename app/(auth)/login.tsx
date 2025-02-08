@@ -4,15 +4,22 @@ import { Text } from 'react-native';
 import firebase from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { router } from 'expo-router';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginSuccess } from '../features/authSlice';
+import { RootState } from '../store';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+
   const handleLogin = async () => {
     try {
       const auth = getAuth();
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      dispatch(loginSuccess(userCredential.user));
       router.replace('/(tabs)');
     } catch (error: any) {
       Alert.alert('Error', error.message);
