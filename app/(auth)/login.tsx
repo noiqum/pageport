@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StyleSheet, View, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Text } from 'react-native';
-import firebase from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { router } from 'expo-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginSuccess } from '../features/authSlice';
 import { RootState } from '../store';
+import { auth } from '@/firebaseConfig';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -15,12 +15,17 @@ export default function Login() {
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
+  // 🔥 Use useEffect to prevent unnecessary re-renders
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated]); // ✅ Runs only when isAuthenticated changes
+
   const handleLogin = async () => {
     try {
-      const auth = getAuth();
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       dispatch(loginSuccess(userCredential.user));
-      router.replace('/(tabs)');
     } catch (error: any) {
       Alert.alert('Error', error.message);
     }
@@ -59,6 +64,7 @@ export default function Login() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

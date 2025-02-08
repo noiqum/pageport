@@ -1,17 +1,26 @@
 import { useState } from 'react';
 import { StyleSheet, View, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Text } from 'react-native';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { router } from 'expo-router';
+import {auth} from "../../firebaseConfig"
+import { useDispatch } from 'react-redux';
+import { loginSuccess } from '../features/authSlice';
 
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
 
   const handleRegister = async () => {
     try {
-      const auth = getAuth();
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName: userCredential.user.displayName || '',
+      };
+      dispatch(loginSuccess(user));
       router.replace('/(tabs)');
     } catch (error: any) {
       Alert.alert('Error', error.message);
