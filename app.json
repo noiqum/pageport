@@ -15,8 +15,10 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff",
-        "package":"com.pageport"
-      }
+        "package": "com.pageport"
+      },
+      "package": "com.noiqum.pageport",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -38,6 +40,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ce95e886-10dc-442e-9bf5-20a0d23b3e9e"
+      }
     }
   }
 }

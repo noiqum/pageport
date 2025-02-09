@@ -38,3 +38,5 @@ yarn-error.*
 app-example
 
 .env
+# Ignore google-services.json
+google-services.json
