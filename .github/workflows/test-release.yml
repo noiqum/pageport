@@ -26,6 +26,8 @@ jobs:
         run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > firebase.json
 
       - name: Build Android App
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --profile test-release --platform android --non-interactive
 
       - name: Upload to Firebase
