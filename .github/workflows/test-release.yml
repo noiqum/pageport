@@ -12,7 +12,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
       - name: Install Node.js
         uses: actions/setup-node@v3
@@ -23,14 +24,27 @@ jobs:
         run: npm install -g eas-cli firebase-tools && npm install
 
       - name: Authenticate Firebase
-        run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > firebase.json
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > firebase.json
 
-      - name: Build Android App
+      - name: Build Android App with EAS
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --profile test-release --platform android --non-interactive
 
-      - name: Upload to Firebase
+      - name: Wait for Build to Complete & Download APK
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          APK_PATH=$(ls ./build/**/*.apk | head -n 1)
-          firebase appdistribution:distribute $APK_PATH --app ${{ secrets.FIREBASE_APP_ID }} --groups testers
+          BUILD_ID=$(eas build:list --json | jq -r '.[0].id')
+          echo "Waiting for build to complete..."
+          eas build:wait --build-id $BUILD_ID
+          BUILD_URL=$(eas build:list --json | jq -r '.[0].artifacts.buildUrl')
+          echo "Downloading APK from $BUILD_URL"
+          curl -o app.apk "$BUILD_URL"
+
+      - name: Upload APK to Firebase App Distribution
+        run: |
+          firebase appdistribution:distribute app.apk \
+            --app ${{ secrets.FIREBASE_APP_ID }} \
+            --groups testers
